@@ -5,21 +5,38 @@ import kotlin.random.Random
 fun main() {
 
     print("How many mines do you want on the field?")
-    val mineCount = readln().toInt()
-    val playground = MutableList(9){ MutableList(9){"."} }
+    val initialMineCount = readln().toInt()
 
-    var actualMines = 0
-    while(actualMines < mineCount) {
-        val i = Random.nextInt(0, 9)
-        val j = Random.nextInt(0, 9)
-        if (playground[i][j] != "X") {
-            playground[i][j] = "X"
-            actualMines++
-        }
+    val playground = Playground()
+    while(playground.mineCount() < initialMineCount)
+        playground.addMineRandomly()
+
+    for(rowIndex in playground.fields.indices)
+        println(playground.fields[rowIndex].joinToString(""))
+
+}
+
+class Playground(_size: Int = 9) {
+    val size = _size
+    val fields = MutableList(size){ MutableList(size){"."} }
+
+    fun mineCount(): Int {
+        var count = 0
+        for(i in 0..size-1)
+            for(j in 0..size-1)
+                if(this.fields[i][j] == "X")
+                    count++
+        return count
     }
 
-    for(rowIndex in playground.indices)
-        println(playground[rowIndex].joinToString(""))
-
+    fun addMineRandomly(): Boolean {
+        val i = Random.nextInt(0, size)
+        val j = Random.nextInt(0, size)
+        if (fields[i][j] != "X")
+            fields[i][j] = "X"
+        else
+            return false
+        return true
+    }
 }
 
