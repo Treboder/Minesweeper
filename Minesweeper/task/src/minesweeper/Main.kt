@@ -1,6 +1,5 @@
 package minesweeper
 
-import java.awt.Point
 import java.util.*
 import kotlin.random.Random
 
@@ -16,7 +15,7 @@ fun main() {
     val initialMineCount = readln().toInt()
 
     // create playground and place the mines randomly
-    val playground = Playground()
+    val playground = Playground(initialMineCount)
     while(playground.mineCount() < initialMineCount)
         playground.addMineRandomly()
 
@@ -29,17 +28,22 @@ fun main() {
     //playground.showMarkMap()
     playground.showVisiblemap()
 
-    while (playground.userFoundAllMines())
+    while (playground.userHaveNotFoundAllMinesYet())
     {
-        playground.SetDeleteMinesMarks()
-        playground.showVisiblemap()
+        if(playground.SetDeleteMinesMarks()) {
+            playground.showVisiblemap()
+            //playground.showMineMap()
+            //playground.showNeighborMap()
+        }
+
     }
 
 
 
 }
 
-class Playground(_size: Int = 9) {
+class Playground(_mineCount: Int, _size: Int = 9) {
+    val mineCount = _mineCount
     val size = _size
     val mineMap = MutableList(size){ MutableList(size){ Symbols.FREE.symbol} }          // Mines (x) or Free (.)
     val neighborMap = MutableList(size){ MutableList(size){ Symbols.FREE.symbol} }      // filled with numbers showing the sum of neighboring mines
@@ -131,7 +135,7 @@ class Playground(_size: Int = 9) {
                 if(markMap[rowIndex][columnIndex] == Symbols.MARK.symbol)
                     visibleMap[rowIndex][columnIndex] = markMap[rowIndex][columnIndex]
 
-                else if(neighborMap[rowIndex][columnIndex].toInt() > 0)
+                else if(neighborMap[rowIndex][columnIndex].toInt() > 0 && mineMap[rowIndex][columnIndex] != Symbols.MINE.symbol)
                     visibleMap[rowIndex][columnIndex] = neighborMap[rowIndex][columnIndex]
 
                 else
@@ -140,7 +144,7 @@ class Playground(_size: Int = 9) {
         }
 
         println("")
-        println("-|visibleMap|")
+        //println("-|visibleMap|")
         println(" |123456789|")
         println("-|---------|")
         for(rowIndex in this.mineMap.indices)
@@ -149,35 +153,48 @@ class Playground(_size: Int = 9) {
 
     }
 
-    fun SetDeleteMinesMarks() {
+    fun SetDeleteMinesMarks(): Boolean {
         print("Set/delete mines marks (x and y coordinates): > ")
         val input = Scanner(System.`in`)
-        val x = input.nextInt() -1
         val y = input.nextInt() -1
+        val x = input.nextInt() -1
+        // switching the coordinates
+
+        // ToDO: check if "There is a number here!"
+        if(neighborMap[x][y].toInt() > 0 && mineMap[x][y] != Symbols.MINE.symbol)
+        {
+            println("There is a number here!")
+            return false
+        }
 
         if (markMap[x][y] == Symbols.MARK.symbol)
             markMap[x][y] = Symbols.FREE.symbol
         else
             markMap[x][y] = Symbols.MARK.symbol
 
+        return true
     }
 
-    fun userFoundAllMines(): Boolean {
+    fun userHaveNotFoundAllMinesYet(): Boolean {
 
+        var matchingFields = 0
         for(rowIndex in this.mineMap.indices) {
             for (columnIndex in this.mineMap[rowIndex].indices) {
-
+                if(mineMap[rowIndex][columnIndex] == Symbols.MINE.symbol && markMap[rowIndex][columnIndex] == Symbols.MARK.symbol)
+                    matchingFields++
+                else if(mineMap[rowIndex][columnIndex] == markMap[rowIndex][columnIndex] ) // both have "."
+                    matchingFields++
             }
         }
 
         // if all mines have been marked (and not more)
-        println("Congratulations! You found all the mines!")
-        return false
+        if(matchingFields == this.size*this.size) {
+            println("Congratulations! You found all the mines!")
+            return false
+        }
 
         // otherwise continue searching
-        //return true
-
-
+        return true
     }
 
 
