@@ -572,5 +572,60 @@ files:
     }
   learner_created: false
 feedback_link: https://hyperskill.org/learn/step/7690#comment
-status: Unchecked
-record: -1
+status: Failed
+feedback:
+  message: |-
+    Wrong answer in test #1
+
+    There should be 1 &#39;*&#39; symbols in the last grid. Found: 2
+
+    Please find below the output of your program during this failed test.
+    Note that the &#39;&gt;&#39; character indicates the beginning of the input line.
+
+    ---
+
+    How many mines do you want on the field?&gt; 1
+
+     |123456789|
+    -|---------|
+    1|.........|
+    2|.........|
+    3|.........|
+    4|.........|
+    5|.........|
+    6|.........|
+    7|.....111.|
+    8|.....1.1.|
+    9|.....111.|
+    -|---------|
+    Set/delete mines marks (x and y coordinates): &gt; &gt; 8 2 mine
+
+     |123456789|
+    -|---------|
+    1|.........|
+    2|.......*.|
+    3|.........|
+    4|.........|
+    5|.........|
+    6|.........|
+    7|.....111.|
+    8|.....1.1.|
+    9|.....111.|
+    -|---------|
+    Set/delete mines marks (x and y coordinates): &gt; &gt; 6 2 free
+
+     |123456789|
+    -|---------|
+    1|.........|
+    2|.....*.*.|
+    3|.........|
+    4|.........|
+    5|.........|
+    6|.........|
+    7|.....111.|
+    8|.....1.1.|
+    9|.....111.|
+    -|---------|
+    Set/delete mines marks (x and y coordinates): &gt;
+  time: Mon, 27 Jun 2022 09:27:00 UTC
+record: 5
