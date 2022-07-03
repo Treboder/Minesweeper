@@ -16,8 +16,6 @@ fun main() {
     val playground = Playground()                       // create new playground, ask for number of mines and place the mines randomly
     val player = Player(playground)                     // create player with playground to operate on
 
-    // handle first move, which is special in a sense that it must not explore a mine by accident
-
     // play the game
     while (player.haveNotFoundAllMinesYet())
         if(player.makeNextMoveWithoutSteppingOnAMine())
@@ -35,13 +33,6 @@ class Playground(_size: Int = 9) {
     val neighborMap = MutableList(size){ MutableList(size) {""} }                       // filled with numbers showing the sum of neighboring mines
 
     init {
-       /* mineMap[1][4] = Symbols.MINE.symbol
-        mineMap[2][5] = Symbols.MINE.symbol
-        mineMap[5][4] = Symbols.MINE.symbol
-        mineMap[7][6] = Symbols.MINE.symbol
-        */
-
-
         print("How many mines do you want on the field?")
         val minesToBePlaced = readln().toInt()
         while(countMines() < minesToBePlaced)
@@ -53,21 +44,33 @@ class Playground(_size: Int = 9) {
 
     private fun countMines(): Int {
         var count = 0
-        for(i in 0..size-1)
+        for(i in 0..size-1)     // ToDo: replace .. with until
             for(j in 0..size-1)
                 if(this.mineMap[i][j] == Symbols.MINE.symbol)
                     count++
         return count
     }
 
-    private fun addNewMineToPlaygroundRandomly(): Boolean {
+    private fun addNewMineToPlaygroundRandomly() {
         val i = Random.nextInt(0, size)
         val j = Random.nextInt(0, size)
+
+        val v1 = this.countMines()
+
         if (mineMap[i][j] != Symbols.MINE.symbol)
             mineMap[i][j] = Symbols.MINE.symbol
         else
-            return false // cell already contains a mine
-        return true
+            addNewMineToPlaygroundSystematically()
+    }
+
+    private fun addNewMineToPlaygroundSystematically() {
+        for(rowIndex in mineMap.indices)
+            for (columnIndex in mineMap[rowIndex].indices)
+                if(mineMap[rowIndex][columnIndex] != Symbols.MINE.symbol)
+                {
+                    mineMap[rowIndex][columnIndex] = Symbols.MINE.symbol
+                    return
+                }
     }
 
     fun relocateMineRandomly(x:Int, y:Int) {
@@ -81,7 +84,7 @@ class Playground(_size: Int = 9) {
                 foundNewPlace = true
             }
             else
-                foundNewPlace = false // cell already contains a mine
+                foundNewPlace = false // cell already contains mine
         }
     }
 
@@ -114,8 +117,8 @@ class Playground(_size: Int = 9) {
 }
 
 class Player(_playground: Playground) {
-    val playground = _playground
-    var moves = 0
+    private val playground = _playground
+    private var moves = 0
 
     fun haveNotFoundAllMinesYet(): Boolean {
 
@@ -135,27 +138,29 @@ class Player(_playground: Playground) {
             return false
         }
 
-        // otherwise continue searching
+        // if not, continue searching
         return true
     }
 
     fun makeNextMoveWithoutSteppingOnAMine(): Boolean {
         print("Set/unset mines marks or claim a cell as free: >  ")
         val input = Scanner(System.`in`)
-        val y = input.nextInt() -1  // switching the coordinates, first input is x
-        val x = input.nextInt() -1  // switching the coordinates, second input is y
+        val x = input.nextInt() -1
+        val y = input.nextInt() -1
         val choice = input.next()
+
+        // ToDo: enforce consistent use of coordinates x, y in entire code; this should be better in production ;-)
 
         var continueGame = true
         if(choice == "mine" )
-            setOrDeleteMineMark(x, y)
+            setOrDeleteMineMark(y,x)
         else if (choice == "free" )
-            continueGame = revealTheNextUnexploredField(x,y)
+            continueGame = revealTheNextUnexploredField(y,x)
 
         return continueGame // true to continue or false if mine has been revealed
     }
 
-    fun setOrDeleteMineMark(x:Int, y:Int) {
+    private fun setOrDeleteMineMark(x:Int, y:Int) {
 
         if (playground.playerMap[x][y] == Symbols.MARK.symbol)
             playground.playerMap[x][y] = Symbols.FREE.symbol
@@ -163,10 +168,9 @@ class Player(_playground: Playground) {
         else if(playground.playerMap[x][y] == Symbols.FREE.symbol)
             playground.playerMap[x][y] = Symbols.MARK.symbol
 
-        //Visualizations.showPlayerMap(playground)
     }
 
-    fun revealTheNextUnexploredField(x:Int, y:Int): Boolean {
+    private fun revealTheNextUnexploredField(x:Int, y:Int): Boolean {
 
         // relocate the mine at x;y if this is the very first exploring move
         if(++moves == 1 && playground.mineMap[x][y] == Symbols.MINE.symbol)
@@ -196,37 +200,26 @@ class Player(_playground: Playground) {
         return true
     }
 
-    fun revealAllFieldsConnectedToExploredFieldsWithZeroMinesInTheirNeighbourhood() {
+    private fun revealAllFieldsConnectedToExploredFieldsWithZeroMinesInTheirNeighbourhood() {
 
         var foundOne = true
         while(foundOne) {
             foundOne = false
             for(rowIndex in playground.mineMap.indices) {
                 for (columnIndex in playground.mineMap[rowIndex].indices) {
-
-                    if(rowIndex == 8 && columnIndex == 8) {
-                        val v1 = playground.playerMap[rowIndex][columnIndex]
-                        val v2 = isNextToAtLeastOneExploredFieldWithoutSurroundingMines(rowIndex, columnIndex)
-                        val v3 = playground.neighborMap[rowIndex][columnIndex].toInt()
-                        val v4 = playground.playerMap[7][8]
-                        val v5 = playground.playerMap[8][7]
-                        true
-                    }
-
                     if(playground.playerMap[rowIndex][columnIndex] == Symbols.UNEXPLORED.symbol && isNextToAtLeastOneExploredFieldWithoutSurroundingMines(rowIndex, columnIndex)) {
                         foundOne = true
                         if(playground.neighborMap[rowIndex][columnIndex].toInt() == 0)
                             playground.playerMap[rowIndex][columnIndex] = Symbols.EXPLORED_WITHOUT_MINES_AROUND.symbol
                         else
                             playground.playerMap[rowIndex][columnIndex] = playground.neighborMap[rowIndex][columnIndex]
-
                     }
                 }
             }
         }
     }
 
-    fun isNextToAtLeastOneExploredFieldWithoutSurroundingMines(i:Int, j:Int): Boolean {
+    private fun isNextToAtLeastOneExploredFieldWithoutSurroundingMines(i:Int, j:Int): Boolean {
 
         for(x in i-1..i+1)
             for(y in j-1..j+1)
@@ -244,7 +237,7 @@ class Player(_playground: Playground) {
         return false
     }
 
-    fun removeImpossibleMarksAfterAutomaticallyRevealedFields() {
+    private fun removeImpossibleMarksAfterAutomaticallyRevealedFields() {
         var foundOne = true
         while(foundOne) {
             foundOne = false
@@ -264,7 +257,7 @@ class Player(_playground: Playground) {
     }
 }
 
-class Visualizations() {
+class Visualizations {
 
     companion object {
 
@@ -307,6 +300,5 @@ class Visualizations() {
                         playground.playerMap[rowIndex][columnIndex] = Symbols.MINE.symbol
         }
     }
-
 
 }
