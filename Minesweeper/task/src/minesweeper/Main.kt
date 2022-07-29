@@ -3,14 +3,6 @@ package minesweeper
 import java.util.*
 import kotlin.random.Random
 
-enum class Symbols (val symbol:String) {
-    MINE("X"),
-    FREE("."),
-    MARK("*"),
-    UNEXPLORED("."),
-    EXPLORED_WITHOUT_MINES_AROUND("/")
-}
-
 fun main() {
 
     val playground = Playground()                       // create new playground, ask for number of mines and place the mines randomly
@@ -44,18 +36,18 @@ class Playground(_size: Int = 9) {
 
     private fun countMines(): Int {
         var count = 0
-        for(i in 0..size-1)     // ToDo: replace .. with until
-            for(j in 0..size-1)
+        for(i in 0 until size)
+            for(j in 0 until size)
                 if(this.mineMap[i][j] == Symbols.MINE.symbol)
                     count++
         return count
     }
 
+    // do something
+
     private fun addNewMineToPlaygroundRandomly() {
         val i = Random.nextInt(0, size)
         val j = Random.nextInt(0, size)
-
-        val v1 = this.countMines()
 
         if (mineMap[i][j] != Symbols.MINE.symbol)
             mineMap[i][j] = Symbols.MINE.symbol
@@ -113,7 +105,6 @@ class Playground(_size: Int = 9) {
             }
         return mineCount
     }
-
 }
 
 class Player(_playground: Playground) {
@@ -261,27 +252,6 @@ class Visualizations {
 
     companion object {
 
-        fun showNeighborMap(playground: Playground) {
-            println("")
-            println("-|neighborMap|")
-            for(rowIndex in playground.mineMap.indices) {
-                for (columnIndex in playground.mineMap[rowIndex].indices) {
-                    print("$rowIndex:$columnIndex  --> ${playground.neighborMap[rowIndex][columnIndex]} | ")
-                }
-                println()
-            }
-        }
-
-        fun showMineMap(playground: Playground) {
-            println("")
-            println("-|mineMap|")
-            println(" |123456789|")
-            println("-|---------|")
-            for(rowIndex in playground.mineMap.indices)
-                println("${rowIndex+1}|" + playground.mineMap[rowIndex].joinToString("") + "|")
-            println("-|---------|")
-        }
-
         fun showPlayerMap(playground: Playground) {
             println("")
             //println("-|mineMap|")
@@ -290,7 +260,6 @@ class Visualizations {
             for(rowIndex in playground.mineMap.indices)
                 println("${rowIndex+1}|" + playground.playerMap[rowIndex].joinToString("") + "|")
             println("-|---------|")
-
         }
 
         fun includeAllMinesOnPlayerMap(playground: Playground) {
@@ -300,5 +269,12 @@ class Visualizations {
                         playground.playerMap[rowIndex][columnIndex] = Symbols.MINE.symbol
         }
     }
+}
 
+enum class Symbols (val symbol:String) {
+    MINE("X"),
+    FREE("."),
+    MARK("*"),
+    UNEXPLORED("."),
+    EXPLORED_WITHOUT_MINES_AROUND("/")
 }
